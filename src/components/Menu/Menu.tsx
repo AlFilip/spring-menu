@@ -1,10 +1,30 @@
-import {useCallback, useState} from "react";
-import {animated, useTransition} from "react-spring";
+import {useState} from "react";
+import {animated, AnimatedProps, useTransition} from "react-spring";
+import styled from "styled-components";
 
-import s from './Menu.module.css'
 import {MenuBtn} from "../MenuBtn/MenuBtn";
+import {ChoseBg} from "../ChoseBg/ChoseBg";
 
-export const Menu = () => {
+const MenuWrapper = styled.div`{
+  position: fixed;
+  height: 100vh;
+  width: 600px;
+  background-color: rgb(0, 42, 46);
+}`
+
+type MenuPropsType = {
+    setBgColor: (value: string) => void
+    currentBg: string
+    isBgOn: boolean
+    setIsBgOn: (value: boolean) => void
+}
+
+export const Menu = ({
+                         setBgColor,
+                         currentBg,
+                         setIsBgOn,
+                         isBgOn,
+                     }: MenuPropsType) => {
     const [isActive, setIsActive] = useState(false)
     const transitions = useTransition(isActive, {
         from: {left: -600},
@@ -12,16 +32,32 @@ export const Menu = () => {
         leave: {left: -600},
     })
 
-    const toggleActive = useCallback(() => setIsActive(!isActive), [isActive])
+    const toggleActive = () => setIsActive(!isActive)
+
+    const renderMenu = (isActive: boolean, props: AnimatedProps<{ left: number | string }>) => {
+        if (!isActive) {
+            return null
+        }
+        return (
+            <MenuWrapper as={animated.div} style={props}>
+                <ChoseBg
+                    setBgColor={setBgColor}
+                    currentBg={currentBg}
+                    isBgOn={isBgOn}
+                    setIsBgOn={setIsBgOn}
+                />
+            </MenuWrapper>
+        )
+    }
+
+    const TransitionMenu = transitions((props, isActive) => {
+        return renderMenu(isActive, props)
+    })
 
     return (
         <>
             <MenuBtn isActive={isActive} callback={toggleActive}/>
-
-            {transitions((props, isActive) => {
-                return isActive
-                    && <animated.div style={props} className={s.menuBody}/>
-            })}
+            {TransitionMenu}
         </>
     )
 }
